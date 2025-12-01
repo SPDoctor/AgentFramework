@@ -1,7 +1,9 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
 using Azure.Identity;
+using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
+using OpenAI;
 using Plugins;
 using System;
 using System.ComponentModel;
@@ -17,10 +19,11 @@ static string GetWeather([Description("The location to get the weather for.")] s
 
 // Create the chat client with function tools.
 var client = new AzureOpenAIClient(new Uri(endpoint), credential);
-var weatherAgent = client.AsChatClient(deploymentName)
-  .AsBuilder()
-  .UseFunctionInvocation()
-  .Build();
+var weatherAgent = client.GetChatClient(deploymentName)
+  .CreateAIAgent(
+    instructions: "You are a helpful agent giving weather information.",
+    tools: [AIFunctionFactory.Create(GetWeather)]
+  );
 
 var chatOptions = new ChatOptions
 {
@@ -29,9 +32,14 @@ var chatOptions = new ChatOptions
 
 
 // Non-streaming interaction with function tools.
-var response = await weatherAgent.CompleteAsync(
-  "What is the weather like in Amsterdam?", chatOptions);
-Console.WriteLine(response.Message.Text);
+AgentThread thread = weatherAgent.GetNewThread();
+var prompt = Console.ReadLine();
+while(prompt != "quit")
+{
+    var response = await weatherAgent.RunAsync(prompt, thread);
+    Console.WriteLine(response.Text);
+    prompt = Console.ReadLine();
+}
 
 // Streaming agent interaction with function tools.
 // await foreach (var update in weatherAgent.CompleteStreamingAsync("What is the weather like in Amsterdam?"), chatOptions)
