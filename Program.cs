@@ -1,11 +1,10 @@
-﻿using System;
-using System.ComponentModel;
-using Azure;
-using System.ComponentModel;
+﻿using Azure;
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using Microsoft.Extensions.AI;
 using Plugins;
+using System;
+using System.ComponentModel;
 
 var endpoint = Environment.GetEnvironmentVariable("endpoint", EnvironmentVariableTarget.User) ?? throw new InvalidOperationException("Azure endpoint is not set.");
 var deploymentName = Environment.GetEnvironmentVariable("deploymentname", EnvironmentVariableTarget.User) ?? "gpt4";
@@ -16,37 +15,26 @@ var credential = new AzureKeyCredential(apiKey);
 static string GetWeather([Description("The location to get the weather for.")] string location)
     => $"The weather in {location} is cloudy with a high of 15°C.";
 
-// Create the chat client and agent, and provide the function tool to the agent.
-//var client = new AzureOpenAIClient(new Uri(endpoint), credential).GetChatClient(deploymentName);
-// var agent = client.CreateAIAgent(
-//         instructions: "You are a helpful assistant",
-//         tools: [AIFunctionFactory.Create(new BingPlugin().GetWeatherAsync)]
-//         );
-
 // Create the chat client with function tools.
-var client = new AzureOpenAIClient(
-    new Uri(endpoint),
-    credential)
-    .AsChatClient(deploymentName)
-    .AsBuilder()
-    .UseFunctionInvocation()
-    .Build();
+var client = new AzureOpenAIClient(new Uri(endpoint), credential);
+var weatherAgent = client.AsChatClient(deploymentName)
+  .AsBuilder()
+  .UseFunctionInvocation()
+  .Build();
+
+var chatOptions = new ChatOptions
+{
+    Tools = [AIFunctionFactory.Create(GetWeather)]
+};
 
 
 // Non-streaming interaction with function tools.
-var response = await client.CompleteAsync(
-    "What is the weather like in Amsterdam?",
-    new ChatOptions
-    {
-        Tools = [AIFunctionFactory.Create(GetWeather)]
-    });
+var response = await weatherAgent.CompleteAsync(
+  "What is the weather like in Amsterdam?", chatOptions);
 Console.WriteLine(response.Message.Text);
 
-// Non-streaming agent interaction with function tools.
-//Console.WriteLine(await agent.RunAsync("What is the weather like in Amsterdam?"));
-
 // Streaming agent interaction with function tools.
-// await foreach (var update in agent.RunStreamingAsync("What is the weather like in Amsterdam?"))
+// await foreach (var update in weatherAgent.CompleteStreamingAsync("What is the weather like in Amsterdam?"), chatOptions)
 // {
 //     Console.WriteLine(update);
 // }
