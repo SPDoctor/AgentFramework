@@ -19,27 +19,52 @@ static string GetWeather([Description("The location to get the weather for.")] s
 
 // Create the chat client with function tools.
 var client = new AzureOpenAIClient(new Uri(endpoint), credential);
+
 var weatherAgent = client.GetChatClient(deploymentName)
   .CreateAIAgent(
     instructions: "You are a helpful agent giving weather information.",
     tools: [AIFunctionFactory.Create(GetWeather)]
   );
 
-var chatOptions = new ChatOptions
-{
-    Tools = [AIFunctionFactory.Create(GetWeather)]
-};
-
+var agent = client.GetChatClient(deploymentName)
+  .CreateAIAgent(
+    instructions: "You are a helpful assistant who responds to the user in the style of James Joyce.",
+    tools: [weatherAgent.AsAIFunction()]
+  );
 
 // Non-streaming interaction with function tools.
-AgentThread thread = weatherAgent.GetNewThread();
+AgentThread thread = agent.GetNewThread();
+Console.Write("agent listening > ");
 var prompt = Console.ReadLine();
 while(prompt != "quit")
 {
-    var response = await weatherAgent.RunAsync(prompt, thread);
+    var response = await agent.RunAsync(prompt, thread);
     Console.WriteLine(response.Text);
+    Console.Write("agent listening > ");
     prompt = Console.ReadLine();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Streaming agent interaction with function tools.
 // await foreach (var update in weatherAgent.CompleteStreamingAsync("What is the weather like in Amsterdam?"), chatOptions)
