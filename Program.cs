@@ -6,6 +6,7 @@ using Microsoft.Extensions.AI;
 using OpenAI;
 using System;
 using System.ComponentModel;
+using Plugins;
 
 var endpoint = Environment.GetEnvironmentVariable("endpoint", EnvironmentVariableTarget.User) ?? throw new InvalidOperationException("Azure endpoint is not set.");
 var deploymentName = Environment.GetEnvironmentVariable("deploymentname", EnvironmentVariableTarget.User) ?? "gpt4";
@@ -28,10 +29,14 @@ var weatherAgent = client.GetChatClient(deploymentName)
 var agent = client.GetChatClient(deploymentName)
   .CreateAIAgent(
     instructions: "You are a helpful assistant who responds to the user in the style of James Joyce.",
-    tools: [weatherAgent.AsAIFunction()]
+    tools: [
+      weatherAgent.AsAIFunction(),
+      AIFunctionFactory.Create(LightPlugin.LightOn),
+      AIFunctionFactory.Create(LightPlugin.LightOff),
+      AIFunctionFactory.Create(LightPlugin.LightFlash)
+    ]
   );
 
-// Non-streaming interaction with function tools.
 AgentThread thread = agent.GetNewThread();
 Console.Write("agent listening > ");
 var prompt = Console.ReadLine();
