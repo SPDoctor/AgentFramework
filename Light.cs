@@ -2,6 +2,7 @@
 using Microsoft.SemanticKernel;
 using Busylight;
 using System.ComponentModel.DataAnnotations;
+using System;
 
 namespace Plugins;
 
@@ -19,6 +20,7 @@ public class LightPlugin
     if(sdk == null) sdk = new Busylight.SDK(true);
     // there is a design error in the SDK, the colours are in the wrong order
     sdk.Light(red, blue, green);
+    Console.WriteLine($"[LightOn called with R={red} G={green} B={blue}]");
   }
 
   [Description("Turn off the light")]
@@ -26,6 +28,7 @@ public class LightPlugin
   {
     if (sdk == null) sdk = new Busylight.SDK(true);
     sdk.Light(0, 0, 0);
+    Console.WriteLine("[LightOff called]");
   }
 
   [Description("Make the light flash")]
@@ -40,5 +43,6 @@ public class LightPlugin
     if (sdk == null) sdk = new Busylight.SDK(true);
     // there is a design error in the SDK, the colours are in the wrong order
     sdk.Blink(red, blue, green, onTime, offTime);
+    Console.WriteLine($"[LightFlash called with R={red} G={green} B={blue} onTime={onTime} offTime={offTime}]");
   }
 }
