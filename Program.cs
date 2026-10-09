@@ -13,27 +13,29 @@ var deploymentName = Environment.GetEnvironmentVariable("deploymentname", Enviro
 var apiKey = Environment.GetEnvironmentVariable("apiKey", EnvironmentVariableTarget.User) ?? throw new InvalidOperationException("Azure key is not set.");
 var credential = new AzureKeyCredential(apiKey);
 
-[Description("Get the weather for a given location.")]
-static string GetWeather([Description("The location to get the weather for.")] string location)
-    => $"The weather in {location} is cloudy with a high of 15°C.";
-
-// Create the chat client with function tools.
+// Create the model hosting client
 var client = new AzureOpenAIClient(new Uri(endpoint), credential);
 
-var weatherAgent = client.GetChatClient(deploymentName)
-  .CreateAIAgent(
-    instructions: "You are a helpful agent giving weather information.",
-    tools: [AIFunctionFactory.Create(GetWeather)]
-  );
+// [Description("Get the weather for a given location.")]
+// static string GetWeather([Description("The location to get the weather for.")] string location)
+//     => $"The weather in {location} is clear blue skies with a high of 10°C.";
 
+// var weatherAgent = client.GetChatClient(deploymentName)
+//   .CreateAIAgent(
+//     instructions: "You are a helpful agent giving weather information.",
+//     tools: [AIFunctionFactory.Create(GetWeather)]
+//   );
+
+// Create the chat client
 var agent = client.GetChatClient(deploymentName)
   .CreateAIAgent(
-    instructions: "You are a helpful assistant who responds to the user in the style of James Joyce.",
+    instructions: "You are a helpful assistant who responds to the user in the style of William Shakespeare.",
     tools: [
-      weatherAgent.AsAIFunction(),
-      AIFunctionFactory.Create(LightPlugin.LightOn),
-      AIFunctionFactory.Create(LightPlugin.LightOff),
-      AIFunctionFactory.Create(LightPlugin.LightFlash)
+      // weatherAgent.AsAIFunction(),
+      // AIFunctionFactory.Create(LightPlugin.LightOn),
+      // AIFunctionFactory.Create(LightPlugin.LightOff),
+      // AIFunctionFactory.Create(LightPlugin.LightFlash),
+      // AIFunctionFactory.Create(TimePlugin.Time)
     ]
   );
 
