@@ -38,7 +38,7 @@ var agent = client.GetChatClient(deploymentName)
     ]
   );
 
-AgentThread thread = agent.GetNewThread();
+var thread = agent.GetNewThread();
 Console.Write("agent listening > ");
 var prompt = Console.ReadLine();
 while(prompt != "quit")
